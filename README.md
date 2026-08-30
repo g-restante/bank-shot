@@ -16,7 +16,7 @@ Shooter multiplayer friendslop: i proiettili fanno danno **solo** se rimbalzano 
 Il piano di progetto completo (fasi, gate di validazione, budget, rischi) è in [`.claude/plan.md`](.claude/plan.md).
 
 | Fase | Obiettivo | Gate |
-|------|-----------|------|
+| ---- | --------- | ---- |
 | 0 | Setup + basi Unity | capsule che spara raycast, su repo |
 | 1 | Core meccanica SP (proiettili, trick, parry, feel) | **fa ridere?** |
 | 2 | Multiplayer FishNet + Steam | **regge in rete 20 min?** |
