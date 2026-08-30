@@ -4,13 +4,14 @@ using UnityEngine;
 namespace BankShot
 {
     /// <summary>
-    /// Bersaglio che lampeggia quando colpito (via MaterialPropertyBlock, nessuna istanza di materiale).
+    /// Bersaglio della sandbox: lampeggia quando colpito da un proiettile ARMATO
+    /// e logga il danno ricevuto. (Via MaterialPropertyBlock, nessuna istanza di materiale.)
     /// </summary>
     [RequireComponent(typeof(Renderer))]
-    public class ShootableTarget : MonoBehaviour
+    public class ShootableTarget : MonoBehaviour, IDamageable
     {
         [SerializeField] Color flashColor = Color.white;
-        [SerializeField] float flashDuration = 0.15f;
+        [SerializeField] float flashDuration = 0.25f;
 
         static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
@@ -26,8 +27,9 @@ namespace BankShot
             baseColor = rend.sharedMaterial.GetColor(BaseColorId);
         }
 
-        public void OnHit(Vector3 point)
+        public void TakeDamage(in DamageInfo info)
         {
+            Debug.Log($"[{name}] {info.Amount:F0} danni ({info.Bounces} rimbalzi)");
             if (flashRoutine != null)
                 StopCoroutine(flashRoutine);
             flashRoutine = StartCoroutine(FlashRoutine());

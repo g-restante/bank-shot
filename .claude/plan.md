@@ -102,7 +102,7 @@ Deliverable/gate: serata di playtest con 6-8 amici, entrambe le modalità. Regis
 
 ## Fase 4 — Contenuto, polish e identità (settimane 19-26)
 
-- Direzione artistica: low-poly stilizzato, palette satura, personaggi buffi (asset pack tipo Synty come base + personalizzazione). Niente realismo: il tono È il marketing.
+- Direzione artistica (decisione 2026-08-31): **realistico-gritty, misto Doom × CS:GO** — low-poly militare, palette industriale desaturata, armi vere (pistola, mitra, sniper). Niente sci-fi/cartoon. Nota: il realismo alza l'asticella degli asset — il budget asset (100-300€, es. pack militari Synty) va speso qui; a livello greybox si usa CC0 (Quaternius guns, Free Firearm Sound Library). La leggibilità della meccanica (colori proiettile/superfici) resta prioritaria sul realismo.
 - Vestire la mappa greybox; seconda mappa solo se il tempo lo consente (meglio 1 mappa ottima che 3 mediocri).
 - Menu, settings (audio, sensibilità, keybind, FOV), pausa.
 - Progressione leggera: statistiche, achievement Steam, magari skin colore. NIENTE battle pass/monetizzazione extra al lancio: prezzo basso una tantum, come tutto il genere.
