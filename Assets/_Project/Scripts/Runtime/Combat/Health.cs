@@ -28,7 +28,10 @@ namespace BankShot
             Current = Mathf.Max(0f, Current - info.Amount);
             Damaged?.Invoke(info);
             if (IsDead)
+            {
                 Died?.Invoke(info);
+                CombatEvents.RaiseKill(info, transform); // il transform del morto, non il root (i bot stanno sotto un parent)
+            }
         }
 
         public void Revive()

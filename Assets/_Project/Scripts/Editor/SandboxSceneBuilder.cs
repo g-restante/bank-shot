@@ -165,6 +165,13 @@ namespace BankShot.EditorTools
 
             player.AddComponent<Health>();
             player.AddComponent<PlayerAvatar>();    // HP, vignetta danno, respawn
+
+            // Killcam: camera dedicata, spenta finché non serve
+            var killcamGo = new GameObject("Killcam");
+            killcamGo.AddComponent<Camera>().enabled = false;         // si accende solo nel replay
+            killcamGo.AddComponent<AudioListener>().enabled = false;  // evita il doppio listener
+            var killcam = killcamGo.AddComponent<KillcamDirector>();
+            Assign(killcam, "actions", inputActions);
         }
 
         static void BuildBots(Material material, ProjectileConfig projectileConfig)

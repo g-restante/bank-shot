@@ -45,6 +45,7 @@ namespace BankShot
         float bounceEnergy;
         Transform shooter;
         float flightTime;
+        readonly List<TrajectoryPoint> trajectory = new List<TrajectoryPoint>(16);
 
         const float ShooterImmunityTime = 0.25f; // il colpo non ferisce chi spara appena partito
 
@@ -113,6 +114,7 @@ namespace BankShot
 
             // I giocatori si colpiscono: chi spara è protetto solo per ShooterImmunityTime
             hitMask = ~LayerMask.GetMask("Projectile", "Ignore Raycast");
+            trajectory.Add(new TrajectoryPoint(transform.position, 0f));
 
             SetupVisuals();
             UpdateVisuals();
@@ -136,7 +138,7 @@ namespace BankShot
                 {
                     // Immunità di chi spara: attraversa il proprio corpo appena partito
                     if (shooter != null && flightTime < ShooterImmunityTime
-                        && hit.collider.transform.root == shooter)
+                        && hit.collider.transform.IsChildOf(shooter))
                     {
                         float step = hit.distance + config.radius * 2f + SkinOffset;
                         transform.position += direction * step;
@@ -165,7 +167,8 @@ namespace BankShot
             {
                 if (state == ProjectileState.Armed)
                 {
-                    var info = new DamageInfo(Damage, hit.point, direction, bounces, shooter);
+                    trajectory.Add(new TrajectoryPoint(hit.point, flightTime));
+                    var info = new DamageInfo(Damage, hit.point, direction, bounces, shooter, trajectory);
                     damageable.TakeDamage(info);
                     CombatEvents.RaiseDamageDealt(info);
                     Destroy(gameObject);
@@ -205,6 +208,7 @@ namespace BankShot
         {
             direction = Vector3.Reflect(direction, hit.normal).normalized;
             transform.position += hit.normal * SkinOffset;
+            trajectory.Add(new TrajectoryPoint(transform.position, flightTime));
 
             Empower(surfaceMultiplier);
             // Ping metallico che sale di tono a ogni rimbalzo: si sente la carica
@@ -219,6 +223,7 @@ namespace BankShot
         public void Parry(Vector3 newDirection)
         {
             direction = newDirection.normalized;
+            trajectory.Add(new TrajectoryPoint(transform.position, flightTime));
             Empower(surfaceMultiplier: 1f);
             // Clang ben distinto dal ping delle sponde
             Sfx.PlayAt(Sfx.Bounce, transform.position, pitch: 1.5f, volume: 0.9f);
