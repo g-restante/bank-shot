@@ -8,6 +8,11 @@ namespace BankShot
         /// <summary>Un proiettile armato ha inflitto danno a qualcuno.</summary>
         public static event Action<DamageInfo> DamageDealt;
 
+        /// <summary>Il giocatore locale ha sparato un trickshot riconosciuto (per i badge HUD).</summary>
+        public static event Action<Tricks> TrickShot;
+
         public static void RaiseDamageDealt(in DamageInfo info) => DamageDealt?.Invoke(info);
+
+        public static void RaiseTrickShot(Tricks tricks) => TrickShot?.Invoke(tricks);
     }
 }

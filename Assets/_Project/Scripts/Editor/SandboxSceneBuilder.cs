@@ -139,17 +139,23 @@ namespace BankShot.EditorTools
             Assign(look, "actions", inputActions);
             Assign(look, "cameraPivot", cameraGo.transform);
 
+            var trickshot = player.AddComponent<TrickshotDetector>();
+            Assign(trickshot, "motor", motor);
+            Assign(trickshot, "yawSource", player.transform);
+
             var gun = cameraGo.AddComponent<ProjectileGun>();
             Assign(gun, "actions", inputActions);
             Assign(gun, "aimCamera", camera);
             Assign(gun, "config", projectileConfig);
+            Assign(gun, "trickshot", trickshot);
 
             var viewmodel = cameraGo.AddComponent<ViewmodelGun>(); // viewmodel + suono sparo
             var pistol = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Models/Weapons/Pistol.fbx");
             if (pistol != null)
                 Assign(viewmodel, "modelPrefab", pistol);
 
-            cameraGo.AddComponent<Crosshair>(); // mirino + hitmarker
+            cameraGo.AddComponent<Crosshair>();     // mirino + hitmarker
+            cameraGo.AddComponent<TrickBadgeHud>(); // badge "AIRBORNE!" ecc.
         }
 
         static ProjectileConfig GetOrCreateProjectileConfig()

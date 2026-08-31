@@ -35,6 +35,9 @@ namespace BankShot
         int powerBounces;  // rimbalzi che contano per il potenziamento (cap)
         ProjectileState state;
         int hitMask;
+        bool bornFromTrick;
+        float trickPenalty = 1f;
+        float bounceEnergy;
 
         MeshRenderer meshRenderer;
         TrailRenderer trail;
@@ -52,9 +55,20 @@ namespace BankShot
         public int Bounces => bounces;
         public float Speed => speed;
         public Vector3 Direction => direction;
-        public float Damage => state == ProjectileState.Disarmed ? 0f : config.DamageAt(powerBounces);
+        public float Damage
+        {
+            get
+            {
+                if (state == ProjectileState.Disarmed)
+                    return 0f;
+                float damage = bornFromTrick && bounces == 0
+                    ? config.baseDamage * config.trickDamageFactor              // trick puro: veloce ma debole
+                    : config.DamageAt(powerBounces) * (bornFromTrick ? config.trickBounceMultiplier : 1f); // trick+sponde: leggendario
+                return damage * trickPenalty;
+            }
+        }
 
-        public static BounceProjectile Spawn(ProjectileConfig config, Vector3 position, Vector3 direction, bool bornArmed)
+        public static BounceProjectile Spawn(ProjectileConfig config, Vector3 position, Vector3 direction, TrickShotInfo trick = default)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             go.name = "Projectile";
@@ -66,19 +80,22 @@ namespace BankShot
             go.transform.localScale = Vector3.one * (config.radius * 2f);
 
             var projectile = go.AddComponent<BounceProjectile>();
-            projectile.Init(config, direction, bornArmed);
+            projectile.Init(config, direction, trick);
             return projectile;
         }
 
-        void Init(ProjectileConfig config, Vector3 direction, bool bornArmed)
+        void Init(ProjectileConfig config, Vector3 direction, TrickShotInfo trick)
         {
             this.config = config;
             this.direction = direction.normalized;
             speed = config.baseSpeed;
             lifeRemaining = config.lifetime;
-            state = bornArmed ? ProjectileState.Armed : ProjectileState.Disarmed;
-            if (bornArmed)
-                powerBounces = 1; // un trick vale come primo rimbalzo (la taratura fine arriva in 1.2)
+            bornFromTrick = trick.BornArmed;
+            trickPenalty = trick.BornArmed ? trick.DamagePenalty : 1f;
+            bounceEnergy = config.bounceEnergy;
+            state = trick.BornArmed ? ProjectileState.Armed : ProjectileState.Disarmed;
+            if (trick.BornArmed)
+                powerBounces = 1; // il trick vale come primo rimbalzo per il potenziamento
 
             hitMask = ~LayerMask.GetMask("Projectile", "Player", "Ignore Raycast");
 
@@ -130,12 +147,31 @@ namespace BankShot
                 }
                 // Punizione comica: colpo diretto disarmato = 0 danni,
                 // il proiettile rimbalza sul corpo e da lì in poi è armato.
-                Bounce(hit, surfaceMultiplier: 1f);
-                return true;
+                return TryBounce(hit, surfaceMultiplier: 1f, energyCost: BounceSurface.DefaultEnergyCost);
             }
 
-            float multiplier = hit.collider.TryGetComponent(out BounceSurface surface) ? surface.SpeedMultiplier : 1f;
-            Bounce(hit, multiplier);
+            float multiplier = 1f;
+            float cost = BounceSurface.DefaultEnergyCost;
+            if (hit.collider.TryGetComponent(out BounceSurface surface))
+            {
+                multiplier = surface.SpeedMultiplier;
+                cost = surface.EnergyCost;
+            }
+            return TryBounce(hit, multiplier, cost);
+        }
+
+        /// <summary>Rimbalza se c'è energia; altrimenti il colpo muore sull'impatto. Ritorna false se distrutto.</summary>
+        bool TryBounce(RaycastHit hit, float surfaceMultiplier, float energyCost)
+        {
+            if (bounceEnergy < energyCost)
+            {
+                // Tonfo sordo: la superficie ha assorbito il colpo
+                Sfx.PlayAt(Sfx.Bounce, hit.point, pitch: 0.5f, volume: 0.4f);
+                Destroy(gameObject);
+                return false;
+            }
+            bounceEnergy -= energyCost;
+            Bounce(hit, surfaceMultiplier);
             return true;
         }
 

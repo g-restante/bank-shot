@@ -23,6 +23,15 @@ namespace BankShot
         [Tooltip("I rimbalzi oltre questo numero non potenziano più (il proiettile continua a rimbalzare)")]
         public int maxPowerBounces = 6;
 
+        [Tooltip("Budget di rimbalzi: ogni superficie consuma energia (legno 0.45, metallo 0.15, gomma 0.08). A zero il colpo muore sull'impatto")]
+        public float bounceEnergy = 1f;
+
+        [Header("Trickshot (Fase 1.2)")]
+        [Tooltip("Danno del trick puro rispetto al rimbalzo singolo (0.8 = la via veloce ma debole)")]
+        public float trickDamageFactor = 0.8f;
+        [Tooltip("Moltiplicatore per trick + rimbalzi successivi (il colpo leggendario)")]
+        public float trickBounceMultiplier = 1.5f;
+
         [Header("Leggibilità (colore = stato, non solo: anche la scia cambia)")]
         public Color disarmedColor = new Color(0.55f, 0.55f, 0.55f);
         public Color armedColor = new Color(1f, 0.15f, 0.1f);
