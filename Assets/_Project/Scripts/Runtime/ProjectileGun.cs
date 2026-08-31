@@ -56,7 +56,7 @@ namespace BankShot
             if (trickshot != null && trickshot.InAir)
                 direction = ApplySpread(direction, airSpreadDegrees);
 
-            BounceProjectile.Spawn(config, muzzle, direction, trick);
+            BounceProjectile.Spawn(config, muzzle, direction, trick, transform.root);
             if (trick.BornArmed)
                 CombatEvents.RaiseTrickShot(trick.Tricks);
             Fired?.Invoke();

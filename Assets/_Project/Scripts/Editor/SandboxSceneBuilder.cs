@@ -35,11 +35,13 @@ namespace BankShot.EditorTools
             Material wood = GetOrCreateMaterial("Wood", new Color(0.32f, 0.22f, 0.13f));     // casse scure
             Material rubber = GetOrCreateMaterial("Rubber", new Color(0.2f, 0.38f, 0.2f));   // gomma militare
             Material target = GetOrCreateMaterial("Target", new Color(0.8f, 0.25f, 0.1f));   // ruggine/arancio
+            Material bot = GetOrCreateMaterial("Bot", new Color(0.55f, 0.12f, 0.1f));        // rosso scuro
 
             BuildLight();
             BuildArena(ground, wall, wood, rubber);
             BuildTargets(target);
             BuildPlayer(inputActions, projectileConfig);
+            BuildBots(bot, projectileConfig);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
@@ -160,6 +162,38 @@ namespace BankShot.EditorTools
 
             cameraGo.AddComponent<Crosshair>();     // mirino + hitmarker
             cameraGo.AddComponent<TrickBadgeHud>(); // badge "AIRBORNE!" ecc.
+
+            player.AddComponent<Health>();
+            player.AddComponent<PlayerAvatar>();    // HP, vignetta danno, respawn
+        }
+
+        static void BuildBots(Material material, ProjectileConfig projectileConfig)
+        {
+            var parent = new GameObject("Bots");
+            var positions = new[]
+            {
+                new Vector3(-10f, 1.1f, 14f),
+                new Vector3(12f, 1.1f, 8f),
+                new Vector3(0f, 1.1f, 16f),
+            };
+
+            for (int i = 0; i < positions.Length; i++)
+            {
+                var bot = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                bot.name = $"Bot_{i}";
+                bot.transform.SetParent(parent.transform, worldPositionStays: false);
+                bot.transform.position = positions[i];
+                bot.GetComponent<Renderer>().sharedMaterial = material;
+                Object.DestroyImmediate(bot.GetComponent<CapsuleCollider>());
+
+                var controller = bot.AddComponent<CharacterController>();
+                controller.height = 2f;
+                controller.radius = 0.4f;
+
+                bot.AddComponent<Health>();
+                var ai = bot.AddComponent<SandboxBot>();
+                Assign(ai, "projectileConfig", projectileConfig);
+            }
         }
 
         static ProjectileConfig GetOrCreateProjectileConfig()

@@ -15,12 +15,16 @@ namespace BankShot
         public readonly Vector3 Direction;
         public readonly int Bounces;
 
-        public DamageInfo(float amount, Vector3 point, Vector3 direction, int bounces)
+        /// <summary>Radice di chi ha sparato (null se ignoto).</summary>
+        public readonly Transform Attacker;
+
+        public DamageInfo(float amount, Vector3 point, Vector3 direction, int bounces, Transform attacker)
         {
             Amount = amount;
             Point = point;
             Direction = direction;
             Bounces = bounces;
+            Attacker = attacker;
         }
     }
 }

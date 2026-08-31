@@ -43,6 +43,10 @@ namespace BankShot
         bool bornFromTrick;
         float trickPenalty = 1f;
         float bounceEnergy;
+        Transform shooter;
+        float flightTime;
+
+        const float ShooterImmunityTime = 0.25f; // il colpo non ferisce chi spara appena partito
 
         MeshRenderer meshRenderer;
         TrailRenderer trail;
@@ -76,7 +80,8 @@ namespace BankShot
             }
         }
 
-        public static BounceProjectile Spawn(ProjectileConfig config, Vector3 position, Vector3 direction, TrickShotInfo trick = default)
+        public static BounceProjectile Spawn(ProjectileConfig config, Vector3 position, Vector3 direction,
+            TrickShotInfo trick = default, Transform shooter = null)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             go.name = "Projectile";
@@ -88,6 +93,7 @@ namespace BankShot
             go.transform.localScale = Vector3.one * (config.radius * 2f);
 
             var projectile = go.AddComponent<BounceProjectile>();
+            projectile.shooter = shooter;
             projectile.Init(config, direction, trick);
             return projectile;
         }
@@ -105,7 +111,8 @@ namespace BankShot
             if (trick.BornArmed)
                 powerBounces = 1; // il trick vale come primo rimbalzo per il potenziamento
 
-            hitMask = ~LayerMask.GetMask("Projectile", "Player", "Ignore Raycast");
+            // I giocatori si colpiscono: chi spara è protetto solo per ShooterImmunityTime
+            hitMask = ~LayerMask.GetMask("Projectile", "Ignore Raycast");
 
             SetupVisuals();
             UpdateVisuals();
@@ -113,6 +120,7 @@ namespace BankShot
 
         void FixedUpdate()
         {
+            flightTime += Time.fixedDeltaTime;
             lifeRemaining -= Time.fixedDeltaTime;
             if (lifeRemaining <= 0f)
             {
@@ -126,6 +134,16 @@ namespace BankShot
                 if (Physics.SphereCast(transform.position, config.radius, direction, out RaycastHit hit,
                         distance, hitMask, QueryTriggerInteraction.Ignore))
                 {
+                    // Immunità di chi spara: attraversa il proprio corpo appena partito
+                    if (shooter != null && flightTime < ShooterImmunityTime
+                        && hit.collider.transform.root == shooter)
+                    {
+                        float step = hit.distance + config.radius * 2f + SkinOffset;
+                        transform.position += direction * step;
+                        distance -= step;
+                        continue;
+                    }
+
                     transform.position += direction * hit.distance;
                     distance -= hit.distance;
                     if (!HandleImpact(hit))
@@ -147,7 +165,7 @@ namespace BankShot
             {
                 if (state == ProjectileState.Armed)
                 {
-                    var info = new DamageInfo(Damage, hit.point, direction, bounces);
+                    var info = new DamageInfo(Damage, hit.point, direction, bounces, shooter);
                     damageable.TakeDamage(info);
                     CombatEvents.RaiseDamageDealt(info);
                     Destroy(gameObject);

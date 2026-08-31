@@ -23,6 +23,8 @@ namespace BankShot
 
         void OnDamageDealt(DamageInfo info)
         {
+            if (info.Attacker != transform.root)
+                return; // hitmarker solo per i colpi del giocatore locale
             lastHitTime = Time.time;
             Sfx.Play2D(Sfx.Hit, pitch: 1f + Mathf.Min(0.5f, info.Bounces * 0.08f), volume: 0.5f);
         }
