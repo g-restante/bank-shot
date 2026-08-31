@@ -165,6 +165,7 @@ namespace BankShot.EditorTools
 
             player.AddComponent<Health>();
             player.AddComponent<PlayerAvatar>();    // HP, vignetta danno, respawn
+            player.AddComponent<QuitHotkey>();      // Esc libera il mouse, doppio Esc esce
 
             // Killcam: camera dedicata, spenta finché non serve
             var killcamGo = new GameObject("Killcam");

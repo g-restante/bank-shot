@@ -37,6 +37,17 @@ namespace BankShot
 
         void Update()
         {
+            // Il click riprende il controllo se il cursore è stato liberato (Esc)
+            if (Cursor.lockState != CursorLockMode.Locked)
+            {
+                if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+                {
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                }
+                return;
+            }
+
             Vector2 delta = lookAction.ReadValue<Vector2>() * sensitivity;
             transform.Rotate(0f, delta.x, 0f);
             pitch = Mathf.Clamp(pitch - delta.y, -pitchLimit, pitchLimit);
