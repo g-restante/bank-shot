@@ -17,8 +17,23 @@ namespace BankShot
         float shownAt = -10f;
         GUIStyle style;
 
-        void OnEnable() => CombatEvents.TrickShot += OnTrickShot;
-        void OnDisable() => CombatEvents.TrickShot -= OnTrickShot;
+        void OnEnable()
+        {
+            CombatEvents.TrickShot += OnTrickShot;
+            CombatEvents.Parried += OnParried;
+        }
+
+        void OnDisable()
+        {
+            CombatEvents.TrickShot -= OnTrickShot;
+            CombatEvents.Parried -= OnParried;
+        }
+
+        void OnParried()
+        {
+            text = "PARRY!";
+            shownAt = Time.time;
+        }
 
         void OnTrickShot(Tricks tricks)
         {

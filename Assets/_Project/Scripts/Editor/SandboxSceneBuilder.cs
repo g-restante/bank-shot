@@ -149,6 +149,10 @@ namespace BankShot.EditorTools
             Assign(gun, "config", projectileConfig);
             Assign(gun, "trickshot", trickshot);
 
+            var parry = cameraGo.AddComponent<MeleeParry>();
+            Assign(parry, "actions", inputActions);
+            Assign(parry, "aimCamera", camera);
+
             var viewmodel = cameraGo.AddComponent<ViewmodelGun>(); // viewmodel + suono sparo
             var pistol = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Models/Weapons/Pistol.fbx");
             if (pistol != null)

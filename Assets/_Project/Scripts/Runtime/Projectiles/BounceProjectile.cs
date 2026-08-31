@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace BankShot
@@ -27,6 +28,10 @@ namespace BankShot
         const int MaxImpactsPerStep = 4;   // angoli stretti: più impatti nello stesso step
         const float SkinOffset = 0.001f;   // distacco dalla superficie dopo il rimbalzo
 
+        /// <summary>Proiettili in volo (per parry e query senza collider).</summary>
+        static readonly List<BounceProjectile> active = new List<BounceProjectile>();
+        public static IReadOnlyList<BounceProjectile> Active => active;
+
         ProjectileConfig config;
         Vector3 direction;
         float speed;
@@ -50,6 +55,9 @@ namespace BankShot
 
         /// <summary>Scatta a ogni rimbalzo: aggancio per audio (pitch crescente) e FX di Fase 1.4.</summary>
         public event Action<BounceProjectile, RaycastHit> Bounced;
+
+        void OnEnable() => active.Add(this);
+        void OnDisable() => active.Remove(this);
 
         public ProjectileState State => state;
         public int Bounces => bounces;
@@ -180,6 +188,27 @@ namespace BankShot
             direction = Vector3.Reflect(direction, hit.normal).normalized;
             transform.position += hit.normal * SkinOffset;
 
+            Empower(surfaceMultiplier);
+            // Ping metallico che sale di tono a ogni rimbalzo: si sente la carica
+            Sfx.PlayAt(Sfx.Bounce, hit.point, pitch: 1f + 0.12f * powerBounces, volume: 0.5f);
+            Bounced?.Invoke(this, hit);
+        }
+
+        /// <summary>
+        /// Ribattuta (Fase 1.3): rilancia il proiettile nella direzione voluta.
+        /// Conta come rimbalzo (potenzia) ma non consuma energia — il parry premia.
+        /// </summary>
+        public void Parry(Vector3 newDirection)
+        {
+            direction = newDirection.normalized;
+            Empower(surfaceMultiplier: 1f);
+            // Clang ben distinto dal ping delle sponde
+            Sfx.PlayAt(Sfx.Bounce, transform.position, pitch: 1.5f, volume: 0.9f);
+        }
+
+        /// <summary>Rimbalzo/parry: conteggi, potenziamento, stato, visuale.</summary>
+        void Empower(float surfaceMultiplier)
+        {
             bounces++;
             if (powerBounces < config.maxPowerBounces)
             {
@@ -188,11 +217,7 @@ namespace BankShot
             }
             speed *= surfaceMultiplier;
             state = ProjectileState.Armed;
-
             UpdateVisuals();
-            // Ping metallico che sale di tono a ogni rimbalzo: si sente la carica
-            Sfx.PlayAt(Sfx.Bounce, hit.point, pitch: 1f + 0.12f * powerBounces, volume: 0.5f);
-            Bounced?.Invoke(this, hit);
         }
 
         // ---- Visuale: il colore È l'informazione (grigio→rosso→giallo col potenziamento) ----

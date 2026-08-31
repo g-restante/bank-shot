@@ -14,6 +14,7 @@ namespace BankShot
         static AudioClip[] shootClips;
         static AudioClip[] bounceClips;
         static AudioClip[] hitClips;
+        static AudioClip[] swingClips;
         static AudioClip whistleClip;
 
         /// <summary>Sparo (variante casuale).</summary>
@@ -24,6 +25,9 @@ namespace BankShot
 
         /// <summary>Dink di conferma colpo.</summary>
         public static AudioClip Hit => Pick(hitClips ??= LoadOrFallback("Sfx/Hit", ProceduralHit));
+
+        /// <summary>Whoosh della sventola melee (parry).</summary>
+        public static AudioClip Swing => Pick(swingClips ??= LoadOrFallback("Sfx/Swing", ProceduralSwing));
 
         /// <summary>Fischio in loop del proiettile in volo.</summary>
         public static AudioClip WhistleLoop
@@ -104,6 +108,19 @@ namespace BankShot
             return (Mathf.Sin(2f * Mathf.PI * 1150f * t)
                   + Mathf.Sin(2f * Mathf.PI * 1725f * t) * 0.4f) * env * 0.7f;
         });
+
+        /// <summary>Whoosh: rumore passa-basso con inviluppo a campana.</summary>
+        static AudioClip ProceduralSwing()
+        {
+            float lp = 0f;
+            return Generate("sfx_swing", 0.22f, (t, rng) =>
+            {
+                float env = Mathf.Sin(Mathf.Clamp01(t / 0.22f) * Mathf.PI); // campana
+                float noise = (float)(rng.NextDouble() * 2.0 - 1.0);
+                lp += 0.18f * (noise - lp);
+                return lp * env * env * 2.2f;
+            });
+        }
 
         /// <summary>Fruscio d'aria tagliata: rumore filtrato in banda media, loop senza click.</summary>
         static AudioClip ProceduralWhistle()
